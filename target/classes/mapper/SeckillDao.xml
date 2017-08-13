@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seckill.dao.SeckillDao">
+    <update id="reduceNumber">
+        update seckill
+        set number = number-1
+        <where>
+            <if test="KillTime != null">
+                and start_time <![CDATA[ <= ]]> #{KillTime}
+                and end_time >= #{KillTime}
+            </if>
+            <if test="seckillId >= 1000">
+                and seckill_id = #{seckillId}
+            </if>
+            and number > 0;
+        </where>
+    </update>
+
+    <select id="queryById" parameterType="long" resultType="Seckill">
+        select seckill_id,name,number,create_time,start_time,end_time from seckill
+        <where>
+            <if test="_parameter >= 1000">
+                and seckill_id = #{_parameter}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryList" resultType="Seckill">
+        select seckill_id,name,number,create_time,start_time,end_time from seckill
+        ORDER by create_time DESC
+
+        <if test="offset >= 1000 and limit > 0">
+            limit #{offset},#{limit}
+        </if>
+
+    </select>
+
+    <!--mabatis调用存储过程-->
+    <select id="killByProcedure" statementType="CALLABLE">
+        call execute_seckill(
+            #{seckillId,jdbcType=BIGINT,mode=IN},
+            #{phone,jdbcType=BIGINT,mode=IN},
+            #{killTime,jdbcType=TIMESTAMP,mode=IN},
+            #{result,jdbcType=INTEGER,mode=OUT}
+        )
+    </select>
+</mapper>
